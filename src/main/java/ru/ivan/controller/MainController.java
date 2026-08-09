@@ -78,6 +78,7 @@ public class MainController {
             int[] totalFiles = { listOfPaths.size() };
             int[] successCount = { 0 };
             int[] errorCount = { 0 };
+            long[] totalLines = { 0 }; // суммарное число строк
 
             if (totalFiles[0] > 1) {
                 String msg = String.format("\n[INFO] Путь ведёт на директорию. Найдено файлов: %d\n", totalFiles[0]);
@@ -89,8 +90,8 @@ public class MainController {
             for (String filePath : listOfPaths) {
                 if (currentTask.isCancelled()) {
                     LOG.info("Обработка отменена пользователем");
-                    String logMsg = String.format("Обработка прервана: всего=%d, успех=%d, ошибки=%d",
-                            totalFiles[0], successCount[0], errorCount[0]);
+                    String logMsg = String.format("Обработка прервана: всего=%d, успех=%d, ошибки=%d, всего строк=%d",
+                            totalFiles[0], successCount[0], errorCount[0], totalLines[0]);
                     Platform.runLater(() -> log(logMsg));
                     return;
                 }
@@ -99,7 +100,19 @@ public class MainController {
                 String fileName = path.getFileName().toString();
 
                 try {
+                    // Читаем как строку
                     String content = Files.readString(path, StandardCharsets.UTF_8);
+
+                    // Считаем строки: split("\n") + если есть контент и не заканчивается на \n — всё равно ок
+                    long lineCount = 0;
+                    if (!content.isEmpty()) {
+                        lineCount = content.lines().count(); // надёжный способ
+                    }
+
+                    // --- делаем финальную копию для лямбды ---
+                    final long finalLineCount = lineCount;
+                    final String finalFileName = fileName;
+                    // -----------------------------------------------------
 
                     Platform.runLater(() -> {
                         String header = "\n**********************\nфайл: " + fileName + "\n**********************\n";
@@ -108,15 +121,25 @@ public class MainController {
                         int contentStartPos = textSaveAreaAll.getLength();
                         textSaveAreaAll.appendText(content);
 
-                        // Сообщение об успехе — сразу в textSaveAreaAll
-                        textSaveAreaAll.appendText("\n[\"" + fileName + "\" прочитан успешно]\n");
+                        // Сообщение об успехе с количеством строк — в textSaveAreaAll
+                        textSaveAreaAll.appendText("\n[\"" + fileName + "\" прочитан успешно. Строк: " + finalLineCount + "]\n");
 
                         lastContentStartPos[0] = contentStartPos;
                         textSaveAreaAll.positionCaret(contentStartPos);
                     });
 
                     successCount[0]++;
-                    LOG.info("Обработан файл: {}", path);
+                    totalLines[0] += lineCount;// тут можно использовать обычный lineCount (вне лямбды)
+
+                    // Лог в textAreaLogs
+                    String successLog = "\"" + fileName + "\" прочитан успешно. Строк: " + finalLineCount;
+                    Platform.runLater(() -> log(successLog));
+
+                    // SLF4J (app.log / консоль)
+                    LOG.info("Обработан файл: {}, строк: {}", path, lineCount);
+
+                    // Терминал (System.out)
+                    System.out.println("[LOG] \"" + fileName + "\" прочитан успешно. Строк: " + lineCount);
 
                 } catch (Exception e) {
                     errorCount[0]++;
@@ -130,22 +153,38 @@ public class MainController {
                         userMessage = "Ошибка чтения: " + (originalMsg != null ? originalMsg : "неизвестная ошибка");
                     }
 
-                    // ОШИБКА — тоже в textSaveAreaAll, в требуемом формате
+                    final String finalFileName = fileName;
+                    final String finalUserMessage = userMessage;
+
+                    // ОШИБКА — в textSaveAreaAll в требуемом формате
                     Platform.runLater(() -> {
-                        String header = "\n**********************\nфайл: " + fileName + "\n**********************\n";
+                        String header = "\n**********************\nфайл: " + finalFileName + "\n**********************\n";
                         textSaveAreaAll.appendText(header);
 
-                        textSaveAreaAll.appendText("[ОШИБКА]: Файл: " + fileName + "\n");
+                        textSaveAreaAll.appendText("[ОШИБКА]: Файл: " + finalFileName + "\n");
                         textSaveAreaAll.appendText(userMessage + "\n");
                     });
 
-                    LOG.error("Ошибка чтения файла {}", path, e);
+                    //??????????????????????????????????????????????????????????????????????????????????????
+                    // Лог ошибки в textAreaLogs (без количества строк, т.к. не смогли прочитать)???????????
+                    String errorLog = "[ОШИБКА]: Файл: " + finalFileName + " — " + finalUserMessage;
+                    Platform.runLater(() -> log(errorLog));
+
+                    // SLF4J
+                    LOG.error("Ошибка чтения файла: {}. {}", path, finalUserMessage, e);
+
+                    // Терминал
+                    System.out.println("[ОШИБКА]: Файл: " + finalFileName + " — " + finalUserMessage);
                 }
             }
 
-            String logMsg = String.format("Обработка завершена: всего=%d, успех=%d, ошибки=%d",
-                    totalFiles[0], successCount[0], errorCount[0]);
+            // Итоговая статистика
+            String logMsg = String.format("Обработка завершена: всего=%d, успех=%d, ошибки=%d, всего строк=%d",
+                    totalFiles[0], successCount[0], errorCount[0], totalLines[0]);
+
             Platform.runLater(() -> log(logMsg));
+            LOG.info(logMsg);
+            System.out.println("[SUMMARY] " + logMsg);
 
             if (lastContentStartPos[0] != -1) {
                 Platform.runLater(() -> {
@@ -154,6 +193,7 @@ public class MainController {
             }
         });
     }
+
 
 
     @FXML
