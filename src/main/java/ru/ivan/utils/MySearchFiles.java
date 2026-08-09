@@ -33,9 +33,10 @@ public class MySearchFiles {
         boolean isDir = Files.isDirectory(path);          // БЕЗ FOLLOW_LINKS
         boolean isFile = Files.isRegularFile(path);      // БЕЗ FOLLOW_LINKS
 
+        List<String> result = new ArrayList<>();
         if (isDir) {
             LOG.info("Путь ведёт на директорию: {}, запускаем рекурсию", path);
-            List<String> result = new ArrayList<>();
+//            List<String> result = new ArrayList<>();
             Set<String> visitedDirs = new HashSet<>();
             recursiveListFiles(path, visitedDirs, result);
             return result;
@@ -52,7 +53,7 @@ public class MySearchFiles {
         }
     }
 
-    private void recursiveListFiles(Path dir, Set<String> visitedDirs, List<String> result) {
+    public void recursiveListFiles(Path dir, Set<String> visitedDirs, List<String> result) {
         String absPath = dir.toAbsolutePath().toString();
         if (!visitedDirs.add(absPath)) {
             return; // защита от циклов

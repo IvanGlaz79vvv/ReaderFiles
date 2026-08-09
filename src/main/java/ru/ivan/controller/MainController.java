@@ -22,15 +22,24 @@ public class MainController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
-    @FXML private TextField pathToFile;
-    @FXML private TextArea textSaveAreaAll;
-    @FXML private TextArea textAreaLogs;
-    @FXML private Label labelFontSize;
-    @FXML private Button buttonRead;
-    @FXML private Button buttonClear;
-    @FXML private Button buttonChancel;
-    @FXML private Button increaseFontSizeBtn;
-    @FXML private Button decreaseFontSizeBtn;
+    @FXML
+    private TextField pathToFile;
+    @FXML
+    private TextArea textSaveAreaAll;
+    @FXML
+    private TextArea textAreaLogs;
+    @FXML
+    private Label labelFontSize;
+    @FXML
+    private Button buttonRead;
+    @FXML
+    private Button buttonClear;
+    @FXML
+    private Button buttonChancel;
+    @FXML
+    private Button increaseFontSizeBtn;
+    @FXML
+    private Button decreaseFontSizeBtn;
 
     // Для отмены задачи чтения/парсинга
     private Future<?> currentTask = null;
@@ -42,7 +51,7 @@ public class MainController {
         updateFontSize();
         log("Готов к работе");
 
-        // ГЛАВНОЕ ИЗМЕНЕНИЕ: при нажатии Enter в поле пути — запускаем чтение
+        /**При нажатии Enter в поле пути — запускаем чтение*/
         pathToFile.setOnAction(event -> onButtonReadClick());
     }
 
@@ -59,62 +68,99 @@ public class MainController {
         }
 
         currentTask = executor.submit(() -> {
-            try {
-                Path path = Path.of(pathStr.trim());
+            List<String> listOfPaths = new MySearchFiles().processPath(pathStr);
 
-                if (!Files.exists(path)) {
-                    Platform.runLater(() -> logError("Файл не найден: " + path.toAbsolutePath()));
+            if (listOfPaths.isEmpty()) {
+                Platform.runLater(() -> logError("Не найдено файлов для обработки"));
+                return;
+            }
+
+            int[] totalFiles = { listOfPaths.size() };
+            int[] successCount = { 0 };
+            int[] errorCount = { 0 };
+
+            if (totalFiles[0] > 1) {
+                String msg = String.format("\n[INFO] Путь ведёт на директорию. Найдено файлов: %d\n", totalFiles[0]);
+                Platform.runLater(() -> textSaveAreaAll.appendText(msg));
+            }
+
+            int[] lastContentStartPos = { -1 };
+
+            for (String filePath : listOfPaths) {
+                if (currentTask.isCancelled()) {
+                    LOG.info("Обработка отменена пользователем");
+                    String logMsg = String.format("Обработка прервана: всего=%d, успех=%d, ошибки=%d",
+                            totalFiles[0], successCount[0], errorCount[0]);
+                    Platform.runLater(() -> log(logMsg));
                     return;
                 }
-//                MySearchFiles mySearchFiles = new MySearchFiles();
-                List<String> listOfFiles = new MySearchFiles().processPath(pathToFile.getText());
-                String content = Files.readString(path, StandardCharsets.UTF_8);
 
-                Platform.runLater(() -> {
-                    // 1. Формируем заголовок блока
-                    String header = "\n**********************\nфайл: " + pathStr + "\n**********************\n";
+                Path path = Path.of(filePath);
+                String fileName = path.getFileName().toString();
 
-                    // 2. Запоминаем позицию, где начнётся заголовок (текущая длина)
-                    int headerStartPos = textSaveAreaAll.getLength();
+                try {
+                    String content = Files.readString(path, StandardCharsets.UTF_8);
 
-                    // 3. Вставляем заголовок
-                    textSaveAreaAll.appendText(header);
+                    Platform.runLater(() -> {
+                        String header = "\n**********************\nфайл: " + fileName + "\n**********************\n";
+                        textSaveAreaAll.appendText(header);
 
-                    // 4. Позиция, где начнётся сам контент файла (сразу после заголовка)
-                    int contentStartPos = textSaveAreaAll.getLength();
+                        int contentStartPos = textSaveAreaAll.getLength();
+                        textSaveAreaAll.appendText(content);
 
-                    // 5. Вставляем содержимое файла
-                    textSaveAreaAll.appendText(content);
+                        // Сообщение об успехе — сразу в textSaveAreaAll
+                        textSaveAreaAll.appendText("\n[\"" + fileName + "\" прочитан успешно]\n");
 
-                    // 6. Ставим каретку в начало контента (после заголовка, но перед текстом файла)
-                    textSaveAreaAll.positionCaret(contentStartPos);
+                        lastContentStartPos[0] = contentStartPos;
+                        textSaveAreaAll.positionCaret(contentStartPos);
+                    });
 
-                    // 7. Прокручиваем вниз, чтобы новый блок был виден
-                    textSaveAreaAll.setScrollTop(Double.MAX_VALUE);
+                    successCount[0]++;
+                    LOG.info("Обработан файл: {}", path);
 
-                    log("Файл прочитан: " + path.toAbsolutePath());
-                });
+                } catch (Exception e) {
+                    errorCount[0]++;
 
-            } catch (Exception e) {
-                String userMessage;
-                String originalMsg = e.getMessage();
+                    String userMessage;
+                    String originalMsg = e.getMessage();
 
-                if (originalMsg != null && originalMsg.contains("Input length")) {
-                    userMessage = "Ошибка чтения файла: возможно, файл повреждён, имеет неверную кодировку или пуст. Путь: " + pathStr;
-                } else {
-                    userMessage = "Ошибка чтения файла: " + originalMsg;
+                    if (originalMsg != null && originalMsg.contains("Input length")) {
+                        userMessage = "Ошибка чтения файла: возможно, файл повреждён, имеет неверную кодировку или пуст.";
+                    } else {
+                        userMessage = "Ошибка чтения: " + (originalMsg != null ? originalMsg : "неизвестная ошибка");
+                    }
+
+                    // ОШИБКА — тоже в textSaveAreaAll, в требуемом формате
+                    Platform.runLater(() -> {
+                        String header = "\n**********************\nфайл: " + fileName + "\n**********************\n";
+                        textSaveAreaAll.appendText(header);
+
+                        textSaveAreaAll.appendText("[ОШИБКА]: Файл: " + fileName + "\n");
+                        textSaveAreaAll.appendText(userMessage + "\n");
+                    });
+
+                    LOG.error("Ошибка чтения файла {}", path, e);
                 }
+            }
 
-                Platform.runLater(() -> logError(userMessage));
-                LOG.error("Ошибка чтения", e);
+            String logMsg = String.format("Обработка завершена: всего=%d, успех=%d, ошибки=%d",
+                    totalFiles[0], successCount[0], errorCount[0]);
+            Platform.runLater(() -> log(logMsg));
+
+            if (lastContentStartPos[0] != -1) {
+                Platform.runLater(() -> {
+                    textSaveAreaAll.positionCaret(lastContentStartPos[0]);
+                });
             }
         });
     }
+
 
     @FXML
     private void onButtonCleardClick() {
         Platform.runLater(() -> {
             textSaveAreaAll.clear();
+            textAreaLogs.clear();
             textSaveAreaAll.positionCaret(0);
             textSaveAreaAll.setScrollTop(0);
             log("Содержимое очищено (Clear)");
@@ -162,6 +208,8 @@ public class MainController {
     }
 
     private void logError(String message) {
+        // Оставляем твой старый вариант для быстрой ошибки, но в onButtonReadClick
+        // теперь используем прямой appendText для точного формата ошибки.
         Platform.runLater(() -> {
             String errorText = "ОШИБКА: " + message + "\n";
             textAreaLogs.appendText(errorText);
