@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane fx:id="mainPanel" prefHeight="600.0" prefWidth="335.0"
+            xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ru.ivan.controller.MainController">
+    <children>
+        <VBox layoutX="-2.0" prefHeight="200.0" prefWidth="343.0" AnchorPane.bottomAnchor="5.0"
+              AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+            <children>
+                <HBox>
+                    <children>
+                        <TextField fx:id="pathToFile" layoutX="57.0" layoutY="10.0" prefHeight="25.0" prefWidth="303.0"
+                                   promptText="Путь к файлу:" HBox.hgrow="ALWAYS">
+                            <HBox.margin>
+                                <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+                            </HBox.margin>
+                            <font>
+                                <Font size="18.0"/>
+                            </font>
+                        </TextField>
+                    </children>
+                    <Button fx:id="buttonRead" text="Read" onAction="#onButtonReadClick" layoutY="10.0"
+                            mnemonicParsing="false" prefHeight="35.0" prefWidth="150.0" >
+                        <HBox.margin>
+                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+                        </HBox.margin>
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Button>
+                </HBox>
+                <HBox>
+                    <children>
+                        <Button fx:id="buttonClear" text="Clear" onAction="#onButtonCleardClick" layoutY="10.0"
+                                mnemonicParsing="false" prefHeight="35.0" prefWidth="150.0">
+                            <HBox.margin>
+                                <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+                            </HBox.margin>
+                            <font>
+                                <Font size="18.0"/>
+                            </font>
+                        </Button>
+                    </children>
+                    <children>
+                        <Button fx:id="buttonChancel" text="Chancel" onAction="#onButtonChanselClick" layoutY="10.0"
+                                mnemonicParsing="false" prefHeight="35.0" prefWidth="150.0">
+                            <HBox.margin>
+                                <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+                            </HBox.margin>
+                            <font>
+                                <Font size="18.0"/>
+                            </font>
+                        </Button>
+                    </children>
+                </HBox>
+                <HBox>
+                    <children>
+                        <Label fx:id="labelFontSize" prefHeight="45.0" style=" -fx-padding: 2 2 2 2; -fx-font-size: 16px; -fx-alignment: center;" text="Шрифт:"/>
+                        <Button fx:id="decreaseFontSizeBtn" onAction="#decreaseFontSize" prefHeight="35.0"
+                                prefWidth="50.0" style=" -fx-font-weight: bold; -fx-font-size: 22px;" text="-"/>
+                        <Button fx:id="increaseFontSizeBtn" onAction="#increaseFontSize" prefHeight="35.0"
+                                prefWidth="50.0"  style=" -fx-font-weight: bold; -fx-font-size: 22px;" text="+"/>
+                    </children>
+                </HBox>
+                <TextArea fx:id="textSaveAreaAll" prefColumnCount="2" prefHeight="507.0" prefWidth="315.0"
+                          wrapText="true"
+                          VBox.vgrow="ALWAYS">
+                    <VBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+                    </VBox.margin>
+                    <padding>
+                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+                    </padding>
+                    <font>
+                        <Font size="18.0"/>
+                    </font>
+                </TextArea>
+                <TextArea fx:id="textAreaLogs" prefColumnCount="2" prefHeight="200.0" maxHeight="200.0"
+                          prefWidth="315.0" wrapText="true"
+                          VBox.vgrow="ALWAYS">
+                    <VBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+                    </VBox.margin>
+                    <padding>
+                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+                    </padding>
+                    <font>
+                        <Font size="14.0"/>
+                    </font>
+                </TextArea>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>
