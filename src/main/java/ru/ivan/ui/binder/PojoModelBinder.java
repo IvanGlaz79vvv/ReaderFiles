@@ -1,4 +1,4 @@
-
+package ru.ivan.ui.binder;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -189,7 +189,7 @@ public class PojoModelBinder {
                 case Labeled lbl -> lbl.setText(PropertyConverter.toUiString(mf.get(model)));
 
                 default -> LOG.warning("Unsupported UI component " + ui.getClass().getSimpleName()
-                                       + " for field: " + mf.getName());
+                        + " for field: " + mf.getName());
             }
         }
     }
@@ -271,11 +271,10 @@ public class PojoModelBinder {
                     attachSelectionRebind(cb.getSelectionModel().selectedItemProperty(), controller, mf, cb);
                 }
                 default -> LOG.warning("Unsupported UI component " + ui.getClass().getSimpleName()
-                                       + " for field: " + mf.getName());
+                        + " for field: " + mf.getName());
             }
         }
     }
-
 
 
     // -------------------------------------------------------------------------
@@ -289,7 +288,7 @@ public class PojoModelBinder {
             Object ui = uf.get(controller);
             if (!(ui instanceof TreeView<?> tv)) {
                 LOG.warning("Expected TreeView for recursive field '" + mf.getName()
-                            + "' but got: " + (ui == null ? "null" : ui.getClass().getSimpleName()));
+                        + "' but got: " + (ui == null ? "null" : ui.getClass().getSimpleName()));
                 continue;
             }
             TreeView<Object> treeView = (TreeView<Object>) tv;
@@ -297,7 +296,7 @@ public class PojoModelBinder {
             // Build root item from the model itself (the root node IS the model)
             TreeItem<Object> root = buildTreeItem(model, mf);
             root.setExpanded(true);
-            if (treeView.getRoot()==null) treeView.setRoot(root);
+            if (treeView.getRoot() == null) treeView.setRoot(root);
             attachTreeSelectionRebind(treeView, controller);
         }
     }
@@ -334,7 +333,7 @@ public class PojoModelBinder {
         if (old instanceof Runnable r) r.run();
 
         ChangeListener<TreeItem<Object>> listener = (obs, prev, next) -> {
-            if (next != null && next.getValue() != null ) bind(controller, next.getValue());
+            if (next != null && next.getValue() != null) bind(controller, next.getValue());
         };
         treeView.getProperties().put(SEL_UNSUBSCRIBE_KEY,
                 (Runnable) () -> selectedProp.removeListener(listener));
@@ -459,7 +458,7 @@ public class PojoModelBinder {
         if (args.length == 0) return null;
         if (args[0] instanceof Class<?> cls) return cls;
         if (args[0] instanceof WildcardType wt && wt.getUpperBounds().length > 0
-            && wt.getUpperBounds()[0] instanceof Class<?> cls) return cls;
+                && wt.getUpperBounds()[0] instanceof Class<?> cls) return cls;
         return null;
     }
 

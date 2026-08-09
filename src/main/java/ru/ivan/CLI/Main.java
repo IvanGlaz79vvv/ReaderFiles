@@ -1,29 +1,32 @@
-package ru.ivan;
+package ru.ivan.CLI;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+import ru.ivan.service.UserMessageService;
+
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        String path = "C:\\Projects\\FX\\TestFXv1\\src\\main";
+    public static void main(String[] args) throws Exception {
+//        String path = "C:\\Projects\\FX\\ReaderFiles\\src\\main\\java\\ru\\ivan";
 //        String path = "C:\\Projects\\RAL\\ral_v1\\src\\main\\java\\ru\\ivan";
 //        String path = "C:\\Projects\\FX\\TestFXv1\\src";
 //        String path = "C:\\Projects\\RZHD\\RZHD_FX_My_3v\\src\\main";
 //        String txtName = "RZHD_FX_My_3v.txt";
-        MySearchFiles mySearchFiles = new MySearchFiles();
-        List<String> list = mySearchFiles.searchMyFiles(path);
 
-        MyParse myParse = new MyParse();
+//        String path = "C:\\Projects\\FX\\ReaderFiles\\src\\main\\java\\ru\\ivan";
+        String path = "C:\\Projects\\FX\\TestFXv1\\data";
+//        String path = "C:\\Projects\\FX\\TestFXv1\\data\\cardsOfColors.csv";
+//        String path = "C:\\Projects\\FX\\TestFXv1\\data\\cardsOfColors.xlsx";
+        UserMessageService userMessageService = new UserMessageService();
+        String str =  userMessageService.getResultString(path);
+        System.out.println(str);
 
-        StringBuilder sb = new StringBuilder();
-        for (String f : list) {
-            String fileParse = myParse.parseFile(f);
-            sb.append("\n\n\n").append(fileParse);
-        }
-        Path outputFile = Paths.get("TestFXv1");
-        Files.writeString(outputFile.toAbsolutePath(), sb.toString());
+
+
+//        String doc = new LocalHtmlParce().parseFile("C:\\Projects\\FX\\TestFXv1\\data\\cardsOfColors.csv");
+//        String doc = new LocalHtmlParce().parseFile("C:\\Projects\\FX\\TestFXv1\\data");
+//        System.out.println(doc);
+
+
+//        Path outputFile = Paths.get("TestFXv1");
+//        Files.writeString(outputFile.toAbsolutePath(), sb.toString());
     }
 }
